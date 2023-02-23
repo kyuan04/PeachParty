@@ -3,7 +3,9 @@
 
 #include "GameWorld.h"
 #include "Board.h"
+#include "Actor.h"
 #include <string>
+#include <vector>
 
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
 
@@ -16,6 +18,8 @@ public:
   virtual void cleanUp();
 
 private:
+    Peach* peach;
+    std::vector<Actor*> actors;
 };
 
 #endif // STUDENTWORLD_H_
