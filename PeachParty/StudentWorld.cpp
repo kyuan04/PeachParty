@@ -17,7 +17,7 @@ StudentWorld::StudentWorld(string assetPath)
 
 int StudentWorld::init()
 {
-	startCountdownTimer(5);  // this placeholder causes timeout after 5 seconds
+	startCountdownTimer(99);  // this placeholder causes timeout after 5 seconds
     return GWSTATUS_CONTINUE_GAME;
 }
 
