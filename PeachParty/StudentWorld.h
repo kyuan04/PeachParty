@@ -12,11 +12,12 @@
 class StudentWorld : public GameWorld
 {
 public:
-  StudentWorld(std::string assetPath);
-  virtual int init();
-  virtual int move();
-  virtual void cleanUp();
-
+    StudentWorld(std::string assetPath);
+    ~StudentWorld();
+    virtual int init();
+    virtual int move();
+    virtual void cleanUp();
+    bool isValidPosition(int x, int y);
 private:
     Peach* peach;
     std::vector<Actor*> actors;

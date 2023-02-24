@@ -17,19 +17,21 @@ private:
 
 class Avatar : public Actor {
 public:
-    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticks_to_move(0), waitingToRoll(true) {};
-    virtual void doSomething() {std::cerr << "do something\n";};
+    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(1), ticksToMove(0), waitingToRoll(true){};
     int getPlayerNumber();
+    void setMoveDirection(int dir) { moveDirection = dir; };
+    int getMoveDirection() { return moveDirection; };
+    virtual void doSomething();
 private:
     int playerNumber;
-    int ticks_to_move;
+    int ticksToMove;
     bool waitingToRoll;
+    int moveDirection;
 };
 
 class Peach : public Avatar {
 public:
-    Peach(StudentWorld* world, int startX, int startY) : Avatar(world, IID_PEACH, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY, 1){};
-    virtual void doSomething() {std::cerr << "do something\n";};
+    Peach(StudentWorld* world, int startX, int startY) : Avatar(world, IID_PEACH, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY, 1) {};
 private:
 };
 
@@ -43,14 +45,20 @@ private:
 class Square : public Actor {
 public:
     Square(StudentWorld* world, int imageID, int startX, int startY, int depth) : Actor(world, imageID, SPRITE_WIDTH * startX, SPRITE_WIDTH * startY, 0, depth) {}
-    virtual void doSomething() {std::cerr << "do something\n";};
 private:
 };
 
 class CoinSquare: public Square {
 public:
-    CoinSquare(StudentWorld* world, int startX, int startY) : Square(world, IID_BLUE_COIN_SQUARE, startX, startY, 0) {}
-    virtual void doSomething() {std::cerr << "do something\n";};
+    CoinSquare(StudentWorld* world, int imageID, int startX, int startY) : Square(world, imageID, startX, startY, 0), isAlive(true) {}
+    virtual void doSomething();
+private:
+    bool isAlive;
+};
+
+class BlueCoinSquare: public CoinSquare {
+public:
+    BlueCoinSquare(StudentWorld* world, int startX, int startY) : CoinSquare(world, IID_BLUE_COIN_SQUARE, startX, startY) {};
 private:
 };
 

@@ -43,9 +43,10 @@ int StudentWorld::init()
                     break;
                 case Board::player:
                     peach = new Peach(this, i, j);
+                    actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::blue_coin_square:
-                    actors.push_back(new CoinSquare(this, i, j));
+                    actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::red_coin_square:
                     break;
@@ -76,7 +77,7 @@ int StudentWorld::init()
     
     //3. Allocate and insert all of the other objects (e.g., squares, baddies, etc.) into the game world as described below
     //4. Start the countdown timer for the 99-second game.
-	startCountdownTimer(5);  // this placeholder causes timeout after 5 seconds
+	startCountdownTimer(99);  // this placeholder causes timeout after 5 seconds
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -84,6 +85,10 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you hit ESC.
     // Notice that the return value GWSTATUS_NOT_IMPLEMENTED will cause our framework to end the game.
+    peach->doSomething();
+    for (Actor* a : actors) {
+        a->doSomething();
+    }
 
     setGameStatText("Game will end in a few seconds");
     
@@ -95,4 +100,29 @@ int StudentWorld::move()
 
 void StudentWorld::cleanUp()
 {
+    for (Actor* a : actors) {
+        delete a;
+    }
+    actors.clear();
+    
+    delete peach;
+    peach = nullptr;
+}
+
+StudentWorld::~StudentWorld() {
+    cleanUp();
+}
+
+bool StudentWorld::isValidPosition(int x, int y) {
+    Board bd;
+    string board_file = assetPath() + "board01.txt";
+    bd.loadBoard(board_file);
+    
+    Board::GridEntry ge = bd.getContentsOf(x / SPRITE_WIDTH, y / SPRITE_HEIGHT);
+    
+    if (ge == Board::empty) {
+        return false;
+    } else {
+        return true;
+    }
 }
