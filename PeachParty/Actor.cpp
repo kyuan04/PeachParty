@@ -51,6 +51,7 @@ void Avatar::doSomething() {
         ticksToMove--;
         if (ticksToMove == 0) {
             waitingToRoll = true;
+            
         }
     }
 }

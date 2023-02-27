@@ -17,8 +17,11 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
+    Board getBoard() { return bd; }
     bool isValidPosition(int x, int y);
 private:
+    Board bd;
+    Yoshi* yoshi;
     Peach* peach;
     std::vector<Actor*> actors;
 };

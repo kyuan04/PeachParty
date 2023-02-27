@@ -4,6 +4,7 @@
 #include "Board.h"
 #include <string>
 #include <vector>
+#include <sstream>
 using namespace std;
 
 GameWorld* createStudentWorld(string assetPath)
@@ -22,9 +23,8 @@ int StudentWorld::init()
 {
     //TODO:
     //1. initialize data structures used to keep track of my game's world
-    Board b;
-    string board_file = assetPath() + "board01.txt";
-    Board::LoadResult result = b.loadBoard(board_file);
+    string board_file = assetPath() + "board0" + to_string(getBoardNumber()) + ".txt";
+    Board::LoadResult result = bd.loadBoard(board_file);
     
     if (result == Board::load_fail_bad_format) {
         cerr << "Your board was improperly formatted\n";
@@ -36,37 +36,52 @@ int StudentWorld::init()
     
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 16; j++) {
-            Board::GridEntry ge = b.getContentsOf(i, j);
+            Board::GridEntry ge = bd.getContentsOf(i, j);
             
             switch (ge) {
                 case Board::empty:
                     break;
                 case Board::player:
                     peach = new Peach(this, i, j);
+                    yoshi = new Yoshi(this, i, j);
+                    //actors.push_back(new Peach(this, i, j));
+                    //actors.push_back(new Yoshi(this, i, j));
                     actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::blue_coin_square:
                     actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::red_coin_square:
+                    actors.push_back(new RedCoinSquare(this, i, j));
                     break;
                 case Board::left_dir_square:
+                    actors.push_back(new LeftDirectionSquare(this, i, j));
                     break;
                 case Board::right_dir_square:
+                    actors.push_back(new RightDirectionSquare(this, i, j));
                     break;
                 case Board::up_dir_square:
+                    actors.push_back(new UpDirectionSquare(this, i, j));
                     break;
                 case Board::down_dir_square:
+                    actors.push_back(new DownDirectionSquare(this, i, j));
                     break;
                 case Board::event_square:
+                    actors.push_back(new EventSquare(this, i,j ));
                     break;
                 case Board::bank_square:
+                    actors.push_back(new BankSquare(this, i, j));
                     break;
                 case Board::star_square:
+                    actors.push_back(new StarSquare(this, i, j));
                     break;
                 case Board::bowser:
+                    actors.push_back(new Bowser(this, i, j));
+                    actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::boo:
+                    actors.push_back(new Boo(this, i, j));
+                    actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                     
             }
@@ -85,12 +100,17 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you hit ESC.
     // Notice that the return value GWSTATUS_NOT_IMPLEMENTED will cause our framework to end the game.
+    
     peach->doSomething();
+    yoshi->doSomething();
     for (Actor* a : actors) {
         a->doSomething();
     }
+    
+    ostringstream oss;
+    oss << "P1 Roll: " << ((peach->getTicksToMove() + 7) / 8) << " Stars: " << peach->getNumStars() << " $$: " << peach->getNumCoins() << " | Time: " << timeRemaining() << " | Bank: " << " | P2 Roll: " << ((yoshi->getTicksToMove() + 7) / 8) << " Stars: " << yoshi->getNumStars() << " $$: " << yoshi->getNumCoins();
 
-    setGameStatText("Game will end in a few seconds");
+    setGameStatText(oss.str());
     
     if (timeRemaining() <= 0)
 		return GWSTATUS_NOT_IMPLEMENTED;
@@ -107,6 +127,8 @@ void StudentWorld::cleanUp()
     
     delete peach;
     peach = nullptr;
+    delete yoshi;
+    yoshi = nullptr;
 }
 
 StudentWorld::~StudentWorld() {
@@ -114,9 +136,9 @@ StudentWorld::~StudentWorld() {
 }
 
 bool StudentWorld::isValidPosition(int x, int y) {
-    Board bd;
-    string board_file = assetPath() + "board01.txt";
-    bd.loadBoard(board_file);
+//    Board bd;
+//    string board_file = assetPath() + "board0" + to_string(getBoardNumber()) + ".txt";
+//    bd.loadBoard(board_file);
     
     Board::GridEntry ge = bd.getContentsOf(x / SPRITE_WIDTH, y / SPRITE_HEIGHT);
     
