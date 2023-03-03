@@ -46,18 +46,70 @@ void Avatar::doSomething() {
         } else {
             setDirection(right);
         }
-            
+        
         moveAtAngle(getMoveDirection(), 2);
         ticksToMove--;
         if (ticksToMove == 0) {
             waitingToRoll = true;
             
-        }
+            }
     }
 }
 
-void CoinSquare::doSomething() {
-    if (!isAlive) {
+void BlueCoinSquare::doSomething() {
+    if (!isActive()) {
         return;
+    }
+    
+    Peach* p = getWorld()->getPeach();
+    Yoshi* y = getWorld()->getYoshi();
+    
+    if (!p->hasLanded()) {
+        p->setActivatedSquare(false);
+    }
+    
+    if (!y->hasLanded()) {
+        y->setActivatedSquare(false);
+    }
+    
+    if (p->hasLanded() && p->getX() == this->getX() && p->getY() == this->getY() && !p->hasActivatedSquare()) {
+        p->resetNumCoins(3);
+        getWorld()->playSound(SOUND_GIVE_COIN);
+        p->setActivatedSquare(true);
+    }
+    
+    if (y->hasLanded() && y->getX() == this->getX() && y->getY() == this->getY() && !y->hasActivatedSquare()) {
+        y->resetNumCoins(3);
+        getWorld()->playSound(SOUND_GIVE_COIN);
+        y->setActivatedSquare(true);
+    }
+}
+
+void RedCoinSquare::doSomething() {
+    if (!isActive()) {
+        return;
+    }
+    
+    Peach* p = getWorld()->getPeach();
+    Yoshi* y = getWorld()->getYoshi();
+    
+    if (!p->hasLanded()) {
+        p->setActivatedSquare(false);
+    }
+    
+    if (!y->hasLanded()) {
+        y->setActivatedSquare(false);
+    }
+    
+    if (p->hasLanded() && p->getX() == this->getX() && p->getY() == this->getY() && !p->hasActivatedSquare()) {
+        p->resetNumCoins(-3);
+        getWorld()->playSound(SOUND_TAKE_COIN);
+        p->setActivatedSquare(true);
+    }
+    
+    if (y->hasLanded() && y->getX() == this->getX() && y->getY() == this->getY() && !y->hasActivatedSquare()) {
+        y->resetNumCoins(-3);
+        getWorld()->playSound(SOUND_TAKE_COIN);
+        y->setActivatedSquare(true);
     }
 }

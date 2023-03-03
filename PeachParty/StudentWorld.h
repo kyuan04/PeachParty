@@ -18,6 +18,8 @@ public:
     virtual int move();
     virtual void cleanUp();
     Board getBoard() { return bd; }
+    Peach* getPeach() { return peach; }
+    Yoshi* getYoshi() { return yoshi; }
     bool isValidPosition(int x, int y);
 private:
     Board bd;

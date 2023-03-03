@@ -17,13 +17,17 @@ private:
 
 class Avatar : public Actor {
 public:
-    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticksToMove(0), waitingToRoll(true), numCoins(0), numStars(0) {};
+    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticksToMove(0), waitingToRoll(true), numCoins(0), numStars(0), activatedSquare(false) {};
     int getPlayerNumber();
     void setMoveDirection(int dir) { moveDirection = dir; }
     int getMoveDirection() { return moveDirection; }
     int getTicksToMove() { return ticksToMove; }
     int getNumStars() { return numStars; }
+    void resetNumCoins(int c) { numCoins += c; }
     int getNumCoins() { return numCoins; }
+    bool hasLanded() { return waitingToRoll; }
+    void setActivatedSquare(bool b) { activatedSquare = b; }
+    bool hasActivatedSquare() { return activatedSquare; }
     virtual void doSomething();
 private:
     int playerNumber;
@@ -32,8 +36,8 @@ private:
     int moveDirection;
     int numCoins;
     int numStars;
-    //make vortex projectile variable? p. 28
     bool hasVortex;
+    bool activatedSquare;
 };
 
 class Peach : public Avatar {
@@ -56,21 +60,24 @@ private:
 
 class CoinSquare : public Square {
 public:
-    CoinSquare(StudentWorld* world, int imageID, int startX, int startY) : Square(world, imageID, startX, startY, 1), isAlive(true) {}
-    virtual void doSomething();
+    CoinSquare(StudentWorld* world, int imageID, int startX, int startY) : Square(world, imageID, startX, startY, 1), active(true), isNewPlayer(true) {}
+    bool isActive() { return active; }
 private:
-    bool isAlive;
+    bool active;
+    bool isNewPlayer;
 };
 
 class BlueCoinSquare : public CoinSquare {
 public:
     BlueCoinSquare(StudentWorld* world, int startX, int startY) : CoinSquare(world, IID_BLUE_COIN_SQUARE, startX, startY) {}
+    virtual void doSomething();
 private:
 };
 
 class RedCoinSquare : public CoinSquare {
 public:
     RedCoinSquare(StudentWorld* world, int startX, int startY) : CoinSquare(world, IID_RED_COIN_SQUARE, startX, startY) {}
+    virtual void doSomething();
 private:
 };
 

@@ -44,8 +44,6 @@ int StudentWorld::init()
                 case Board::player:
                     peach = new Peach(this, i, j);
                     yoshi = new Yoshi(this, i, j);
-                    //actors.push_back(new Peach(this, i, j));
-                    //actors.push_back(new Yoshi(this, i, j));
                     actors.push_back(new BlueCoinSquare(this, i, j));
                     break;
                 case Board::blue_coin_square:
@@ -136,10 +134,6 @@ StudentWorld::~StudentWorld() {
 }
 
 bool StudentWorld::isValidPosition(int x, int y) {
-//    Board bd;
-//    string board_file = assetPath() + "board0" + to_string(getBoardNumber()) + ".txt";
-//    bd.loadBoard(board_file);
-    
     Board::GridEntry ge = bd.getContentsOf(x / SPRITE_WIDTH, y / SPRITE_HEIGHT);
     
     if (ge == Board::empty) {
@@ -148,3 +142,4 @@ bool StudentWorld::isValidPosition(int x, int y) {
         return true;
     }
 }
+
