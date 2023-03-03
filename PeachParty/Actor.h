@@ -22,6 +22,7 @@ public:
     void setMoveDirection(int dir) { moveDirection = dir; }
     int getMoveDirection() { return moveDirection; }
     int getTicksToMove() { return ticksToMove; }
+    void addStar() { numStars++; }
     int getNumStars() { return numStars; }
     void resetNumCoins(int c) { numCoins += c; }
     int getNumCoins() { return numCoins; }
@@ -84,7 +85,7 @@ private:
 class StarSquare : public Square {
 public:
     StarSquare(StudentWorld* world, int startX, int startY) : Square(world, IID_STAR_SQUARE, startX, startY, 1) {}
-    virtual void doSomething() { return; };
+    virtual void doSomething();
 private:
 };
 

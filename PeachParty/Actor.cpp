@@ -113,3 +113,36 @@ void RedCoinSquare::doSomething() {
         y->setActivatedSquare(true);
     }
 }
+
+void StarSquare::doSomething() {
+    Peach* p = getWorld()->getPeach();
+    Yoshi* y = getWorld()->getYoshi();
+    
+    if (!p->hasLanded()) {
+        p->setActivatedSquare(false);
+    }
+    
+    if (!y->hasLanded()) {
+        y->setActivatedSquare(false);
+    }
+    
+    if (p->hasLanded() && p->getX() == this->getX() && p->getY() == this->getY() && !p->hasActivatedSquare()) {
+        if (p->getNumCoins() < 20) {
+            return;
+        } else {
+            p->resetNumCoins(-20);
+            p->addStar();
+            getWorld()->playSound(SOUND_GIVE_STAR);
+        }
+    }
+    
+    if (y->hasLanded() && y->getX() == this->getX() && y->getY() == this->getY() && !y->hasActivatedSquare()) {
+        if (y->getNumCoins() < 20) {
+            return;
+        } else {
+            y->resetNumCoins(-20);
+            y->addStar();
+            getWorld()->playSound(SOUND_GIVE_STAR);
+        }
+    }
+}

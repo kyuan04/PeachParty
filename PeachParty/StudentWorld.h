@@ -20,7 +20,7 @@ public:
     Board getBoard() { return bd; }
     Peach* getPeach() { return peach; }
     Yoshi* getYoshi() { return yoshi; }
-    bool isValidPosition(int x, int y);
+    bool isValidPosition(int x, int y); //checks if a position is a valid square
 private:
     Board bd;
     Yoshi* yoshi;

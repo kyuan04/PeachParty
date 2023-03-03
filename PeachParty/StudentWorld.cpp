@@ -87,7 +87,6 @@ int StudentWorld::init()
     }
     //2. Allocate and insert Peach and Yoshi objects into the game world. Every time a game begins, Peach and Yoshi start out initialized in their starting location asspecified by the current board data file
     
-    
     //3. Allocate and insert all of the other objects (e.g., squares, baddies, etc.) into the game world as described below
     //4. Start the countdown timer for the 99-second game.
 	startCountdownTimer(99);  // this placeholder causes timeout after 5 seconds
