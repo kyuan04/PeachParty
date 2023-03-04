@@ -26,6 +26,7 @@ public:
     int getNumStars() { return numStars; }
     void resetNumCoins(int c) { numCoins += c; }
     int getNumCoins() { return numCoins; }
+    void setWaitingToRoll(bool b) { waitingToRoll = b; }
     bool hasLanded() { return waitingToRoll; }
     void setActivatedSquare(bool b) { activatedSquare = b; }
     bool hasActivatedSquare() { return activatedSquare; }
@@ -91,9 +92,10 @@ private:
 
 class DirectionSquare : public Square {
 public:
-    DirectionSquare(StudentWorld* world, int imageID, int startX, int startY, int dir) : Square(world, imageID, startX, startY, 1) { setDirection(dir); }
-    virtual void doSomething() { return; };
+    DirectionSquare(StudentWorld* world, int imageID, int startX, int startY, int dir) : Square(world, imageID, startX, startY, 1), forcingDir(dir) { setDirection(dir); }
+    virtual void doSomething();
 private:
+    int forcingDir;
 };
 
 class UpDirectionSquare : public DirectionSquare {
@@ -122,9 +124,12 @@ private:
 
 class BankSquare : public Square {
 public:
-    BankSquare(StudentWorld* world, int startX, int startY) : Square(world, IID_BANK_SQUARE, startX, startY, 1) {}
-    virtual void doSomething() { return; };
+    BankSquare(StudentWorld* world, int startX, int startY) : Square(world, IID_BANK_SQUARE, startX, startY, 1), bankBalance(0) {}
+    virtual void doSomething();
+    void resetBankBalance(int c) { bankBalance += c; }
+    int getBankBalance() { return bankBalance; }
 private:
+    int bankBalance;
 };
 
 class EventSquare : public Square {

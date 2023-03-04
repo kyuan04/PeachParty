@@ -68,7 +68,7 @@ int StudentWorld::init()
                     actors.push_back(new EventSquare(this, i,j ));
                     break;
                 case Board::bank_square:
-                    actors.push_back(new BankSquare(this, i, j));
+                    bank = new BankSquare(this, i, j);
                     break;
                 case Board::star_square:
                     actors.push_back(new StarSquare(this, i, j));
@@ -100,12 +100,13 @@ int StudentWorld::move()
     
     peach->doSomething();
     yoshi->doSomething();
+    bank->doSomething();
     for (Actor* a : actors) {
         a->doSomething();
     }
     
     ostringstream oss;
-    oss << "P1 Roll: " << ((peach->getTicksToMove() + 7) / 8) << " Stars: " << peach->getNumStars() << " $$: " << peach->getNumCoins() << " | Time: " << timeRemaining() << " | Bank: " << " | P2 Roll: " << ((yoshi->getTicksToMove() + 7) / 8) << " Stars: " << yoshi->getNumStars() << " $$: " << yoshi->getNumCoins();
+    oss << "P1 Roll: " << ((peach->getTicksToMove() + 7) / 8) << " Stars: " << peach->getNumStars() << " $$: " << peach->getNumCoins() << " | Time: " << timeRemaining() << " | Bank: " << bank->getBankBalance() << " | P2 Roll: " << ((yoshi->getTicksToMove() + 7) / 8) << " Stars: " << yoshi->getNumStars() << " $$: " << yoshi->getNumCoins();
 
     setGameStatText(oss.str());
     
@@ -126,6 +127,8 @@ void StudentWorld::cleanUp()
     peach = nullptr;
     delete yoshi;
     yoshi = nullptr;
+    delete bank;
+    bank = nullptr;
 }
 
 StudentWorld::~StudentWorld() {
