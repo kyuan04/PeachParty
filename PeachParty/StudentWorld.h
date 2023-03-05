@@ -20,11 +20,14 @@ public:
     Board getBoard() { return bd; }
     Peach* getPeach() { return peach; }
     Yoshi* getYoshi() { return yoshi; }
+    void setBankBalance(int i) { bankBalance = i; }
+    int getBankBalance() { return bankBalance; }
     bool isValidPosition(int x, int y); //checks if a position is a valid square
 private:
     Board bd;
     Yoshi* yoshi;
     Peach* peach;
+    int bankBalance;
     std::vector<Actor*> actors;
 };
 

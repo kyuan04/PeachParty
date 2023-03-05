@@ -7,9 +7,9 @@ class StudentWorld;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 class Actor : public GraphObject {
 public:
-    Actor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : GraphObject(imageID, startX, startY, startDir, depth), m_world(world) {};
+    Actor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : GraphObject(imageID, startX, startY, startDir, depth), m_world(world), forcingDir(-1) {}
     virtual void doSomething() = 0;
-    StudentWorld* getWorld() { return m_world; };
+    StudentWorld* getWorld() { return m_world; }
     void setForcingDir(int dir) { forcingDir = dir; }
     int getForcingDir() { return forcingDir; }
 private:
@@ -17,36 +17,64 @@ private:
     int forcingDir;
 };
 
-class Avatar : public Actor {
+class MovingActor : public Actor {
 public:
-    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticksToMove(0), waitingToRoll(true), numCoins(0), numStars(0), activatedSquare(false), numPossibleDirections(0) { setForcingDir(-1); };
-    int getPlayerNumber();
+    MovingActor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : Actor(world, imageID, startX, startY, startDir, depth), ticksToMove(0), numPossibleDirections(0), walking(false) {}
+    int getTicksToMove() { return ticksToMove; }
+    void setTicksToMove(int i) {ticksToMove = i; }
     void setMoveDirection(int dir) { moveDirection = dir; }
     int getMoveDirection() { return moveDirection; }
-    int getTicksToMove() { return ticksToMove; }
+    bool isWalking() { return walking; }
+    void setWalking(bool b) { walking = b; }
+    void checkDirection(int dir, int value);
+    void findPossibleDirections();
+    std::set<int> getPossibleDirections() { return possibleDirections; }
+    void adjustSpriteDirection();
+    void doActionAtCorner();
+    void teleport();
+    void swap(MovingActor* y);
+    void setRandomValidDir();
+    virtual void doSomething();
+    virtual void doActionWhileWaiting() = 0;
+    virtual bool canDoActionAtFork() = 0;
+    virtual void doMove() = 0;
+    virtual void decideMove() = 0;
+private:
+    int ticksToMove;
+    bool walking;
+    int moveDirection;
+    int numPossibleDirections;
+    std::set<int> possibleDirections;
+};
+
+class Avatar : public MovingActor {
+public:
+    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : MovingActor(world, imageID, startX, startY, 0, 0), playerNumber(number), numCoins(0), numStars(0), activatedSquare(false), activatedBaddie(false), hasVortex(false) { setForcingDir(-1); }
+    int getPlayerNumber();
     void addStar() { numStars++; }
     int getNumStars() { return numStars; }
     void setNumStars(int stars) { numStars = stars; }
     void resetNumCoins(int c) { numCoins += c; }
     int getNumCoins() { return numCoins; }
-    void setWaitingToRoll(bool b) { waitingToRoll = b; }
-    bool hasLanded() { return waitingToRoll; }
+    void setNumCoins(int c) { numCoins = c; }
     void setActivatedSquare(bool b) { activatedSquare = b; }
     bool hasActivatedSquare() { return activatedSquare; }
-    void findPossibleDirections();
-    virtual void doSomething();
+    void setActivatedBaddie(bool b) { activatedBaddie = b; }
+    bool hasActivatedBaddie() { return activatedBaddie; }
+    std::string vortexMessage();
+    void giveVortex() { hasVortex = true; }
+    //bool getHasVortex() { return hasVortex; }
+    virtual void doActionWhileWaiting();
+    virtual bool canDoActionAtFork();
+    virtual void doMove();
+    virtual void decideMove();
 private:
     int playerNumber;
-    int ticksToMove;
-    bool waitingToRoll;
-    int moveDirection;
     int numCoins;
     int numStars;
     bool hasVortex;
     bool activatedSquare;
-    int numPossibleDirections;
-    std::set<int> possibleDirections;
-    
+    bool activatedBaddie;
 };
 
 class Peach : public Avatar {
@@ -58,6 +86,37 @@ private:
 class Yoshi : public Avatar {
 public:
     Yoshi(StudentWorld* world, int startX, int startY) : Avatar(world, IID_YOSHI, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY, 2){};
+private:
+};
+
+class Baddie : public MovingActor {
+public:
+    Baddie(StudentWorld* world, int imageID, int startX, int startY) : MovingActor(world, imageID, startX, startY, 0, 0), pauseCounter(180), travelDistance(0) {}
+    int getPauseCounter() { return pauseCounter; }
+    void setPauseCounter(int i) {pauseCounter = i; }
+    void decrementPauseCounter() { pauseCounter--; }
+    virtual void decideMove();
+    virtual bool canDoActionAtFork();
+private:
+    int pauseCounter;
+    int travelDistance;
+};
+
+class Bowser : public Baddie {
+public:
+    Bowser(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOWSER, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
+    virtual void doActionWhileWaiting();
+    //virtual bool canDoActionAtFork();
+    virtual void doMove();
+private:
+};
+
+class Boo : public Baddie {
+public:
+    Boo(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOO, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
+    virtual void doActionWhileWaiting();
+    //virtual bool canDoActionAtFork(){return true;}
+    virtual void doMove();
 private:
 };
 
@@ -143,37 +202,17 @@ private:
 class EventSquare : public Square {
 public:
     EventSquare(StudentWorld* world, int startX, int startY) : Square (world, IID_EVENT_SQUARE, startX, startY, 1) {}
-    virtual void doSomething() { return; };
-private:
-};
-
-class Baddie : public Actor {
-public:
-    Baddie(StudentWorld* world, int imageID, int startX, int startY) : Actor(world, imageID, startX, startY, 0, 0), walking(true), pauseCounter(180), travelDistance(0) {}
-    bool isWalking() { return walking; }
-    void setWalking(bool b) {walking = b; }
-    int getPauseCounter() { return pauseCounter; }
-    void decrementPauseCounter() { pauseCounter--; }
-    int getTicksToMove() {return ticksToMove; }
-    void setTicksToMove(int i) { ticksToMove = i; }
-private:
-    bool walking;
-    int pauseCounter;
-    int travelDistance;
-    int ticksToMove;
-};
-
-class Bowser : public Baddie {
-public:
-    Bowser(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOWSER, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
     virtual void doSomething();
 private:
 };
 
-class Boo : public Baddie {
+class Vortex : public MovingActor {
 public:
-    Boo(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOO, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
-    virtual void doSomething() { return; };
+    Vortex(StudentWorld* world, int startX, int startY, int destX, int destY) : MovingActor(world, IID_VORTEX, startX, startY, 0, 0), endX(destX), endY(destY) {}
+    virtual void doSomething();
 private:
+    int endX;
+    int endY;
 };
+
 #endif // ACTOR_H_

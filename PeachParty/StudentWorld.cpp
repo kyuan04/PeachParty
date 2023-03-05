@@ -105,7 +105,7 @@ int StudentWorld::move()
     }
     
     ostringstream oss;
-    oss << "P1 Roll: " << ((peach->getTicksToMove() + 7) / 8) << " Stars: " << peach->getNumStars() << " $$: " << peach->getNumCoins() << " | Time: " << timeRemaining() << " | Bank: " <<  " | P2 Roll: " << ((yoshi->getTicksToMove() + 7) / 8) << " Stars: " << yoshi->getNumStars() << " $$: " << yoshi->getNumCoins();
+    oss << "P1 Roll: " << ((peach->getTicksToMove() + 7) / 8) << " Stars: " << peach->getNumStars() << " $$: " << peach->getNumCoins() << peach->vortexMessage() << " | Time: " << timeRemaining() << " | Bank: " << getBankBalance() << " | P2 Roll: " << ((yoshi->getTicksToMove() + 7) / 8) << " Stars: " << yoshi->getNumStars() << " $$: " << yoshi->getNumCoins();
 
     setGameStatText(oss.str());
     
