@@ -33,6 +33,8 @@ void MovingActor::findPossibleDirections() {
 }
 
 void MovingActor::doSomething() {
+    handleImpact();
+    
     if (!isWalking()) {
         doActionWhileWaiting();
     }
@@ -169,6 +171,10 @@ void Avatar::doActionWhileWaiting() {
     int action = getWorld()->getAction(playerNumber);
     if (action == ACTION_ROLL) {
         decideMove();
+    } else if (action == ACTION_FIRE && hasVortex == true) {
+        getWorld()->createVortex(getX(), getY(), getMoveDirection());
+        getWorld()->playSound(SOUND_PLAYER_FIRE);
+        hasVortex = false;
     } else {
         return;
     }
@@ -218,6 +224,17 @@ std::string Avatar::vortexMessage() {
 
 void Baddie::decideMove() {
     setRandomValidDir();
+}
+
+void Baddie::handleImpact() {
+    if (getImpacted()) {
+        teleport();
+        setWalking(false);
+        setPauseCounter(180);
+        setMoveDirection(right);
+        setDirection(0);
+        setImpacted(false);
+    }
 }
 
 void Bowser::doActionWhileWaiting() {
@@ -275,13 +292,8 @@ void Bowser::doMove() {
         setWalking(false);
         setPauseCounter(180);
         int rand = randInt(1, 4);
-        if (rand == 3) {
-            //        implement dropping square shit on page 39
-            //        Bowser will deposit a dropping by asking the StudentWorld
-            //        object to remove the square underneath him and insert a
-            //        new Dropping Square in its place and play the
-            //        SOUND_DROPPING_SQUARE_CREATED sound using
-            //        playSound().
+        if (rand == 4) {
+            getWorld()->createDroppingSquare(getX(), getY());
         }
     }
 }
@@ -567,9 +579,58 @@ void EventSquare::doSomething() {
     }
 }
 
+void DroppingSquare::doSomething() {
+    Peach* p = getWorld()->getPeach();
+    Yoshi* y = getWorld()->getYoshi();
+    
+    if (p->isWalking()) {
+        p->setActivatedSquare(false);
+    }
+    
+    if (y->isWalking()) {
+        y->setActivatedSquare(false);
+    }
+    
+    if (!p->isWalking() && p->getX() == this->getX() && p->getY() == this->getY() && !p->hasActivatedSquare()) {
+        if (p->getNumStars() >= 1) {
+            p->setNumStars(p->getNumStars() - 1);
+        } else if (p->getNumCoins() >= 10) {
+            p->resetNumCoins(-10);
+        } else {
+            p->setNumCoins(0);
+        }
+        getWorld()->playSound(SOUND_DROPPING_SQUARE_ACTIVATE);
+        p->setActivatedSquare(true);
+    }
+    
+    if (!y->isWalking() && y->getX() == this->getX() && y->getY() == this->getY() && !y->hasActivatedSquare()) {
+        if (y->getNumStars() >= 1) {
+            y->setNumStars(y->getNumStars() - 1);
+        } else if (y->getNumCoins() >= 10) {
+            y->resetNumCoins(-10);
+        } else {
+            y->setNumCoins(0);
+        }
+        getWorld()->playSound(SOUND_DROPPING_SQUARE_ACTIVATE);
+        y->setActivatedSquare(true);
+    }
+}
+
 void Vortex::doSomething() {
-    //isWalking() is the same as isActive() in this case
-    if (!isWalking()) {
+    if (!isActive()) {
         return;
+    }
+    
+    moveAtAngle(fireDirection, 2);
+    if (getX() < 0 || getX() > VIEW_WIDTH || getY() < 0 || getY() > VIEW_HEIGHT) {
+        setActive(false);
+        getWorld()->deleteVortex();
+        return;
+    }
+    
+    if (getWorld()->overlaps(this)) {
+        getWorld()->playSound(SOUND_HIT_BY_VORTEX);
+        setActive(false);
+        getWorld()->deleteVortex();
     }
 }

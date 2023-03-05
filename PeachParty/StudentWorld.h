@@ -23,6 +23,10 @@ public:
     void setBankBalance(int i) { bankBalance = i; }
     int getBankBalance() { return bankBalance; }
     bool isValidPosition(int x, int y); //checks if a position is a valid square
+    void createVortex(int x, int y, int dir);
+    void deleteVortex();
+    void createDroppingSquare(int x, int y);
+    bool overlaps(Vortex* v);
 private:
     Board bd;
     Yoshi* yoshi;

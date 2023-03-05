@@ -15,7 +15,7 @@ GameWorld* createStudentWorld(string assetPath)
 // Students:  Add code to this file, StudentWorld.h, Actor.h, and Actor.cpp
 
 StudentWorld::StudentWorld(string assetPath)
-: GameWorld(assetPath)
+: GameWorld(assetPath), bankBalance(0)
 {
 }
 
@@ -101,6 +101,9 @@ int StudentWorld::move()
     peach->doSomething();
     yoshi->doSomething();
     for (Actor* a : actors) {
+        if (a == nullptr) {
+            continue;
+        }
         a->doSomething();
     }
     
@@ -142,3 +145,47 @@ bool StudentWorld::isValidPosition(int x, int y) {
     }
 }
 
+void StudentWorld::createVortex(int x, int y, int dir) {
+    actors.push_back(new Vortex(this, x, y, dir));
+}
+
+void StudentWorld::deleteVortex() {
+    for (int i = 0; i < actors.size(); i++) {
+        if (actors[i] == nullptr) {
+            continue;
+        }
+        if (actors[i]->isVortex()) {
+            delete actors[i];
+            actors[i] = nullptr;
+            break;
+        }
+    }
+}
+
+void StudentWorld::createDroppingSquare(int x, int y) {
+    for (int i = 0; i < actors.size(); i++) {
+        if (actors[i] == nullptr) {
+            continue;
+        }
+        if (actors[i]->getX() == x && actors[i]->getY() == y && actors[i]->isSquare()) {
+            delete actors[i];
+            actors[i] = nullptr;
+            actors.push_back(new DroppingSquare(this, x / SPRITE_WIDTH, y / SPRITE_HEIGHT));
+            playSound(SOUND_DROPPING_SQUARE_CREATED);
+            break;
+        }
+    }
+}
+
+bool StudentWorld::overlaps(Vortex* v) {
+    for (int i = 0; i < actors.size(); i++) {
+        if (actors[i] == nullptr) {
+            continue;
+        }
+        if ((v->getX() + SPRITE_WIDTH > actors[i]->getX()) && (v->getX() < SPRITE_WIDTH + actors[i]->getX()) && (v->getY() + SPRITE_HEIGHT > actors[i]->getY()) && (v->getY() < SPRITE_HEIGHT + actors[i]->getY()) && actors[i]->isImpactable()) {
+            actors[i]->setImpacted(true);
+            return true;
+        }
+    }
+    return false;
+}

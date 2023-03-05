@@ -7,12 +7,20 @@ class StudentWorld;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 class Actor : public GraphObject {
 public:
-    Actor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : GraphObject(imageID, startX, startY, startDir, depth), m_world(world), forcingDir(-1) {}
+    Actor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : GraphObject(imageID, startX, startY, startDir, depth), m_world(world), forcingDir(-1), impacted(false) {}
     virtual void doSomething() = 0;
     StudentWorld* getWorld() { return m_world; }
     void setForcingDir(int dir) { forcingDir = dir; }
     int getForcingDir() { return forcingDir; }
+    virtual bool isSquare() = 0;
+    virtual bool isVortex() = 0;
+    virtual bool isImpactable() = 0;
+    void setImpacted( bool b ) {impacted = b;}
+    bool getImpacted() { return impacted; }
+    virtual void teleport() { return; }
+    virtual void handleImpact() = 0;
 private:
+    bool impacted;
     StudentWorld* m_world;
     int forcingDir;
 };
@@ -31,14 +39,17 @@ public:
     std::set<int> getPossibleDirections() { return possibleDirections; }
     void adjustSpriteDirection();
     void doActionAtCorner();
-    void teleport();
+    virtual void teleport();
     void swap(MovingActor* y);
     void setRandomValidDir();
     virtual void doSomething();
+    virtual bool isSquare() { return false; }
+    virtual bool isVortex() { return false; }
     virtual void doActionWhileWaiting() = 0;
     virtual bool canDoActionAtFork() = 0;
     virtual void doMove() = 0;
     virtual void decideMove() = 0;
+    virtual void handleImpact() { return ; }
 private:
     int ticksToMove;
     bool walking;
@@ -68,6 +79,7 @@ public:
     virtual bool canDoActionAtFork();
     virtual void doMove();
     virtual void decideMove();
+    virtual bool isImpactable() { return false; }
 private:
     int playerNumber;
     int numCoins;
@@ -91,22 +103,24 @@ private:
 
 class Baddie : public MovingActor {
 public:
-    Baddie(StudentWorld* world, int imageID, int startX, int startY) : MovingActor(world, imageID, startX, startY, 0, 0), pauseCounter(180), travelDistance(0) {}
+    Baddie(StudentWorld* world, int imageID, int startX, int startY) : MovingActor(world, imageID, startX, startY, 0, 0), pauseCounter(180), travelDistance(0), impactable(true) {}
     int getPauseCounter() { return pauseCounter; }
     void setPauseCounter(int i) {pauseCounter = i; }
     void decrementPauseCounter() { pauseCounter--; }
     virtual void decideMove();
     virtual bool canDoActionAtFork();
+    virtual bool isImpactable() { return true; }
+    virtual void handleImpact();
 private:
     int pauseCounter;
     int travelDistance;
+    bool impactable;
 };
 
 class Bowser : public Baddie {
 public:
     Bowser(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOWSER, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
     virtual void doActionWhileWaiting();
-    //virtual bool canDoActionAtFork();
     virtual void doMove();
 private:
 };
@@ -115,7 +129,6 @@ class Boo : public Baddie {
 public:
     Boo(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOO, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
     virtual void doActionWhileWaiting();
-    //virtual bool canDoActionAtFork(){return true;}
     virtual void doMove();
 private:
 };
@@ -123,6 +136,10 @@ private:
 class Square : public Actor {
 public:
     Square(StudentWorld* world, int imageID, int startX, int startY, int depth) : Actor(world, imageID, SPRITE_WIDTH * startX, SPRITE_WIDTH * startY, 0, depth) {}
+    virtual bool isSquare() { return true; }
+    virtual bool isVortex() { return false; }
+    virtual bool isImpactable() { return false; }
+    virtual void handleImpact() { return; }
 private:
 };
 
@@ -206,13 +223,26 @@ public:
 private:
 };
 
-class Vortex : public MovingActor {
+class DroppingSquare : public Square {
 public:
-    Vortex(StudentWorld* world, int startX, int startY, int destX, int destY) : MovingActor(world, IID_VORTEX, startX, startY, 0, 0), endX(destX), endY(destY) {}
+    DroppingSquare(StudentWorld* world, int startX, int startY) : Square (world, IID_DROPPING_SQUARE, startX, startY, 1) {}
     virtual void doSomething();
 private:
-    int endX;
-    int endY;
+};
+
+class Vortex : public Actor {
+public:
+    Vortex(StudentWorld* world, int startX, int startY, int dir) : Actor(world, IID_VORTEX, startX, startY, 0, 0), fireDirection(dir), active(true) {}
+    bool isActive() { return active; }
+    void setActive(bool b) { active = b; }
+    virtual void doSomething();
+    virtual bool isSquare() { return false; }
+    virtual bool isVortex() { return true; }
+    virtual bool isImpactable() { return false; }
+    virtual void handleImpact() { return; }
+private:
+    int fireDirection;
+    bool active;
 };
 
 #endif // ACTOR_H_
