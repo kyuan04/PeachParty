@@ -10,26 +10,30 @@ public:
     Actor(StudentWorld* world, int imageID, int startX, int startY, int startDir, int depth) : GraphObject(imageID, startX, startY, startDir, depth), m_world(world) {};
     virtual void doSomething() = 0;
     StudentWorld* getWorld() { return m_world; };
-    
+    void setForcingDir(int dir) { forcingDir = dir; }
+    int getForcingDir() { return forcingDir; }
 private:
     StudentWorld* m_world;
+    int forcingDir;
 };
 
 class Avatar : public Actor {
 public:
-    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticksToMove(0), waitingToRoll(true), numCoins(0), numStars(0), activatedSquare(false) {};
+    Avatar(StudentWorld* world, int imageID, int startX, int startY, int number) : Actor(world, imageID, startX, startY, 0, 0), playerNumber(number), ticksToMove(0), waitingToRoll(true), numCoins(0), numStars(0), activatedSquare(false), numPossibleDirections(0) { setForcingDir(-1); };
     int getPlayerNumber();
     void setMoveDirection(int dir) { moveDirection = dir; }
     int getMoveDirection() { return moveDirection; }
     int getTicksToMove() { return ticksToMove; }
     void addStar() { numStars++; }
     int getNumStars() { return numStars; }
+    void setNumStars(int stars) { numStars = stars; }
     void resetNumCoins(int c) { numCoins += c; }
     int getNumCoins() { return numCoins; }
     void setWaitingToRoll(bool b) { waitingToRoll = b; }
     bool hasLanded() { return waitingToRoll; }
     void setActivatedSquare(bool b) { activatedSquare = b; }
     bool hasActivatedSquare() { return activatedSquare; }
+    void findPossibleDirections();
     virtual void doSomething();
 private:
     int playerNumber;
@@ -40,6 +44,9 @@ private:
     int numStars;
     bool hasVortex;
     bool activatedSquare;
+    int numPossibleDirections;
+    std::set<int> possibleDirections;
+    
 };
 
 class Peach : public Avatar {
@@ -92,10 +99,11 @@ private:
 
 class DirectionSquare : public Square {
 public:
-    DirectionSquare(StudentWorld* world, int imageID, int startX, int startY, int dir) : Square(world, imageID, startX, startY, 1), forcingDir(dir) { setDirection(dir); }
+    DirectionSquare(StudentWorld* world, int imageID, int startX, int startY, int dir) : Square(world, imageID, startX, startY, 1) { setDirection(dir);
+        setForcingDir(dir);
+    }
     virtual void doSomething();
 private:
-    int forcingDir;
 };
 
 class UpDirectionSquare : public DirectionSquare {
@@ -141,14 +149,24 @@ private:
 
 class Baddie : public Actor {
 public:
-    Baddie(StudentWorld* world, int imageID, int startX, int startY) : Actor(world, imageID, startX, startY, 0, 0) {}
+    Baddie(StudentWorld* world, int imageID, int startX, int startY) : Actor(world, imageID, startX, startY, 0, 0), walking(true), pauseCounter(180), travelDistance(0) {}
+    bool isWalking() { return walking; }
+    void setWalking(bool b) {walking = b; }
+    int getPauseCounter() { return pauseCounter; }
+    void decrementPauseCounter() { pauseCounter--; }
+    int getTicksToMove() {return ticksToMove; }
+    void setTicksToMove(int i) { ticksToMove = i; }
 private:
+    bool walking;
+    int pauseCounter;
+    int travelDistance;
+    int ticksToMove;
 };
 
 class Bowser : public Baddie {
 public:
     Bowser(StudentWorld* world, int startX, int startY) : Baddie(world, IID_BOWSER, SPRITE_WIDTH * startX, SPRITE_HEIGHT * startY) {}
-    virtual void doSomething() { return; };
+    virtual void doSomething();
 private:
 };
 

@@ -25,7 +25,6 @@ private:
     Board bd;
     Yoshi* yoshi;
     Peach* peach;
-    BankSquare* bank;
     std::vector<Actor*> actors;
 };
 

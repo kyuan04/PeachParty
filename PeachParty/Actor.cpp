@@ -2,6 +2,48 @@
 #include "StudentWorld.h"
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
+
+void Avatar::findPossibleDirections() {
+    possibleDirections.clear();
+    numPossibleDirections = 0;
+    int newX;
+    int newY;
+    
+    getPositionInThisDirection(up, 16, newX, newY);
+    if (getWorld()->isValidPosition(newX, newY)) {
+        numPossibleDirections++;
+        possibleDirections.insert(90);
+    }
+    
+    newX = 0;
+    newY = 0;
+    
+    getPositionInThisDirection(down, 16, newX, newY);
+    if (getWorld()->isValidPosition(newX, newY)) {
+        numPossibleDirections++;
+        possibleDirections.insert(270);
+    }
+    
+    newX = 0;
+    newY = 0;
+    
+    getPositionInThisDirection(left, 16, newX, newY);
+    if (getWorld()->isValidPosition(newX, newY)) {
+        numPossibleDirections++;
+        possibleDirections.insert(180);
+    }
+    
+    newX = 0;
+    newY = 0;
+    
+    getPositionInThisDirection(right, 16, newX, newY);
+    if (getWorld()->isValidPosition(newX, newY)) {
+        numPossibleDirections++;
+        possibleDirections.insert(0);
+    }
+    
+}
+
 void Avatar::doSomething() {
     if (waitingToRoll == true) {
         int action = getWorld()->getAction(playerNumber);
@@ -15,12 +57,52 @@ void Avatar::doSomething() {
     }
     
     if (waitingToRoll == false) {
-        //if avatar can't continue moving forward in current direction
         int newX;
         int newY;
+        
         if (ticksToMove % 8 == 0) {
+            findPossibleDirections();
+            
+            //if player is on directional square
+            if (getForcingDir() != -1) {
+                setMoveDirection(getForcingDir());
+                if (getMoveDirection() == left) {
+                    setDirection(left);
+                } else {
+                    setDirection(right);
+                }
+                setForcingDir(-1);
+            } else if (numPossibleDirections >= 3) {
+                int forkAction = getWorld()->getAction(playerNumber);
+                int originalDir = getMoveDirection();
+                if ((forkAction == ACTION_UP) && (possibleDirections.find(90) != possibleDirections.end()) && (originalDir != down)) {
+                    setMoveDirection(up);
+                } else if ((forkAction == ACTION_DOWN) && (possibleDirections.find(270) != possibleDirections.end()) && (originalDir != up)) {
+                    setMoveDirection(down);
+                } else if ((forkAction == ACTION_LEFT) && (possibleDirections.find(180) != possibleDirections.end()) && (originalDir != right)) {
+                    setMoveDirection(left);
+                } else if ((forkAction == ACTION_RIGHT) && (possibleDirections.find(0) != possibleDirections.end()) && (originalDir != left)) {
+                    setMoveDirection(right);
+                } else {
+                    return;
+                }
+                
+                //adjust direction the sprite is facing
+                if (getMoveDirection() == left) {
+                    setDirection(left);
+                } else {
+                    setDirection(right);
+                }
+                
+                
+            }
+            
+            //if avatar can't continue moving forward in current direction
+            newX = 0;
+            newY = 0;
             getPositionInThisDirection(getMoveDirection(), 16, newX, newY);
-            if (!getWorld()->isValidPosition(newX, newY)) {
+            findPossibleDirections();
+            if (!getWorld()->isValidPosition(newX, newY) && numPossibleDirections < 3) {
                 if (getMoveDirection() == right || getMoveDirection() == left) {
                     getPositionInThisDirection(up, 16, newX, newY);
                     if (getWorld()->isValidPosition(newX, newY)) {
@@ -37,7 +119,6 @@ void Avatar::doSomething() {
                     }
                 }
             }
-            
         }
         
         //make sprite face the right direction
@@ -51,8 +132,7 @@ void Avatar::doSomething() {
         ticksToMove--;
         if (ticksToMove == 0) {
             waitingToRoll = true;
-            
-            }
+        }
     }
 }
 
@@ -162,20 +242,22 @@ void DirectionSquare::doSomething() {
     Yoshi* y = getWorld()->getYoshi();
     
     if (p->getX() == this->getX() && p->getY() == this->getY()) {
-        p->setMoveDirection(forcingDir);
-        if (p->getMoveDirection() == left) {
-            p->setDirection(left);
-        } else {
-            p->setDirection(right);
-        }
+        p->setForcingDir(this->getForcingDir());
+        //p->setMoveDirection(getForcingDir());
+//        if (p->getMoveDirection() == left) {
+//            p->setDirection(left);
+//        } else {
+//            p->setDirection(right);
+//        }
     }
     if (y->getX() == this->getX() && y->getY() == this->getY()) {
-        y->setMoveDirection(forcingDir);
-        if (y->getMoveDirection() == left) {
-            y->setDirection(left);
-        } else {
-            y->setDirection(right);
-        }
+        y->setForcingDir(this->getForcingDir());
+        //y->setMoveDirection(getForcingDir());
+//        if (y->getMoveDirection() == left) {
+//            y->setDirection(left);
+//        } else {
+//            y->setDirection(right);
+//        }
     }
 }
 
@@ -230,3 +312,34 @@ void BankSquare::doSomething() {
     }
 }
 
+void Bowser::doSomething() {
+    Peach* p = getWorld()->getPeach();
+    Yoshi* y = getWorld()->getYoshi();
+    
+    if (!isWalking()) {
+        if (p->getX() == this->getX() && p->getY() == this->getY() && p->hasLanded()) {
+            int choice = randInt(1, 2);
+            if (choice == 1) {
+                p->resetNumCoins(p->getNumCoins() * -1);
+                p->setNumStars(0);
+                getWorld()->playSound(SOUND_BOWSER_ACTIVATE);
+            }
+        }
+        
+        if (y->getX() == this->getX() && y->getY() == this->getY() && y->hasLanded()) {
+            int choice = randInt(1, 2);
+            if (choice == 1) {
+                y->resetNumCoins(y->getNumCoins() * -1);
+                y->setNumStars(0);
+                getWorld()->playSound(SOUND_BOWSER_ACTIVATE);
+            }
+        }
+        
+        decrementPauseCounter();
+        
+//        if (pauseCounter == 0) {
+//            int squares_to_move = randInt(1, 10);
+//            
+//        }
+    }
+}
